@@ -1,0 +1,4 @@
+*.vmf_autosave
+*.log
+*.bsp
+*.vmx

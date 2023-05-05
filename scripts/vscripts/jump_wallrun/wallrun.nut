@@ -41,7 +41,7 @@ function Think()
                         vel += wallForward * WALL_JUMP_FORWARD;
 
                         ply.SetAbsVelocity(vel);
-                        ::nuts_wallrun_players[ply.entindex()].last_jump = Time();
+                        ::wallrun_players[ply.entindex()].last_jump = Time();
                         NetProps.SetPropFloat(ply, "m_flGravity", NORMAL_GRAVITY);
                         continue;
                     }
@@ -70,7 +70,7 @@ function Think()
 
 ::GetJumpCooldown <- function(ply)
 {
-    local cooldown = ::nuts_wallrun_players[ply.entindex()].last_jump + WALL_JUMP_INTERVAL - Time();
+    local cooldown = ::wallrun_players[ply.entindex()].last_jump + WALL_JUMP_INTERVAL - Time();
     if (cooldown < 0)
     {
         cooldown = 0;
@@ -110,7 +110,7 @@ function Think()
     local ground = GetGroundEntity(ply);
     if (ground != null)
     {
-        ::nuts_wallrun_players[ply.entindex()].last_jump = Time();
+        ::wallrun_players[ply.entindex()].last_jump = Time();
         return null;
     }
 
@@ -152,33 +152,33 @@ function Think()
     return normal;
 }
 
-if (!("nuts_wallrun_loaded" in getroottable()))
+if (!("wallrun_loaded" in getroottable()))
 {
-    Log("nuts/wallrun init");
-    ::nuts_wallrun_loaded <- true;
-    ::nuts_wallrun_players <- {};
+    Log("wallrun init");
+    ::wallrun_loaded <- true;
+    ::wallrun_players <- {};
     for (local i = 0; i < Constants.Server.MAX_PLAYERS; i+=1)
     {
-        ::nuts_wallrun_players[i] <- { last_jump = 0 };
+        ::wallrun_players[i] <- { last_jump = 0 };
     }
 
     if (!("HOOKED_EVENTS" in getroottable()))
     {
-        Log("nuts/wallrun hook events");
+        Log("wallrun hook events");
         __CollectGameEventCallbacks(this);
         ::HOOKED_EVENTS <- true;
     }
 
-    local thinker = SpawnEntityFromTable("info_target", { targetname = "nuts_wallrun_thinker" } );
+    local thinker = SpawnEntityFromTable("info_target", { targetname = "wallrun_thinker" } );
     if(thinker.ValidateScriptScope())
     {
-        Log("nuts/wallrun thinker valid");
+        Log("wallrun thinker valid");
         thinker.GetScriptScope()["Think"] <- Think;
         AddThinkToEnt(thinker, "Think");
     }
 }
 else
 {
-    Log("nuts/wallrun already init");
+    Log("wallrun already init");
 }
 

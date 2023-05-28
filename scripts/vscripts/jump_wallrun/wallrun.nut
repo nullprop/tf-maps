@@ -1,4 +1,4 @@
-DoIncludeScript("jump_wallrun/util.nut", null);
+DoIncludeScript("util.nut", null);
 
 const WALL_DISTANCE = 16.0;
 const WALL_MAX_Z = 0.1;

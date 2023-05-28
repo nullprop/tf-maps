@@ -1,7 +1,7 @@
 ::Log <- function(msg)
 {
     local time = Time();
-    printl(format("[NUTS][%.2f] | %s", time, msg));
+    printl(format("[VSCRIPT][%.2f] | %s", time, msg));
 }
 
 ::ClipVelocity <- function(vel, normal, bounce)
@@ -114,7 +114,7 @@ IsValidAndAlive <- function(ent)
         return false;
     }
 
-    if (ent.GetHealth() < 0)
+    if (ent.GetHealth() <= 0)
     {
         return false;
     }
@@ -228,6 +228,19 @@ GetOppositeTeam <- function(team)
     return Constants.ETFTeam.TEAM_INVALID;
 }
 
+IsPlayingTeam <- function(team)
+{
+    if (team == Constants.ETFTeam.TF_TEAM_RED)
+    {
+        return true;
+    }
+    else if (team == Constants.ETFTeam.TF_TEAM_BLUE)
+    {
+        return true;
+    }
+    return false;
+}
+
 TraceLine <- function(startPos, endPos, mask, ignore)
 {
     local tr =
@@ -259,6 +272,11 @@ TraceBox <- function(startPos, endPos, mins, maxs, mask, ignore)
 GetButtons <- function(player)
 {
     return NetProps.GetPropInt(player, "m_nButtons");
+}
+
+SetButtons <- function(player, buttons)
+{
+    return NetProps.SetPropInt(player, "m_nButtons", buttons);
 }
 
 GetWishDir <- function(player)

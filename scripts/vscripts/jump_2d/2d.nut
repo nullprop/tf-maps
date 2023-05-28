@@ -1,6 +1,6 @@
 DoIncludeScript("util.nut", null);
 
-const CAM_DISTANCE = 256;
+const CAM_DISTANCE = 350;
 const CAM_YAW = 0;
 
 const PLAYER_YAW = -90;
@@ -14,6 +14,8 @@ const AIM_INDICATOR_START = 25;
 const AIM_INDICATOR_END = 40;
 const AIM_INDICATOR_TIP = 5;
 
+const ANGLE_MAX_ERROR = 2.0;
+
 PrecacheSound(PLAYER_DOUBLE_JUMP_SOUND);
 
 function Think()
@@ -26,9 +28,18 @@ function Think()
             HandleDirection(ply);
 
             local eyeAngles = ply.EyeAngles();
-            eyeAngles.y = ::j2d_players[ply.entindex()].wish_yaw;
-            eyeAngles.z = 0.0;
-            ply.SnapEyeAngles(eyeAngles);
+            // Don't snap eye angles every frame, can cause pitch to become "stuck" randomly.
+            // Only correct if drifting too far from the 2D plane.
+            // We can't move on the X-axis anyways so small error here is not big issue.
+            if (
+                abs(eyeAngles.y - ::j2d_players[ply.entindex()].wish_yaw) > ANGLE_MAX_ERROR ||
+                abs(eyeAngles.z) > ANGLE_MAX_ERROR
+            )
+            {
+                eyeAngles.y = ::j2d_players[ply.entindex()].wish_yaw;
+                eyeAngles.z = 0.0;
+                ply.SnapEyeAngles(eyeAngles);
+            }
 
             local playerOrigin = ply.GetOrigin();
             playerOrigin.x = PLAYER_X;
@@ -42,7 +53,7 @@ function Think()
     return 0;
 }
 
-function HandleDirection(ply)
+::HandleDirection <- function(ply)
 {
     local buttons = GetButtons(ply);
     if (buttons & Constants.FButtons.IN_ATTACK2 && Time() - ::j2d_players[ply.entindex()].last_turn > PLAYER_TURN_INTERVAL)
@@ -52,7 +63,7 @@ function HandleDirection(ply)
     }
 }
 
-function DrawAimIndicator(ply, angles)
+::DrawAimIndicator <- function(ply, angles)
 {
     local dir = angles.Forward();
     local start = ply.EyePosition() + dir * AIM_INDICATOR_START;
@@ -65,7 +76,7 @@ function DrawAimIndicator(ply, angles)
     DebugDrawLine_vCol(end, tip2, Vector(255, 255, 255), true, 0);
 }
 
-function HandleDoubleJump(ply)
+::HandleDoubleJump <- function(ply)
 {
     local ground = GetGroundEntity(ply);
     local buttons = GetButtons(ply);
@@ -83,11 +94,14 @@ function HandleDoubleJump(ply)
     )
     {
         local vel = ply.GetAbsVelocity();
-        vel.z = PLAYER_DOUBLE_JUMP_VEL;
-        ply.SetAbsVelocity(vel);
-        ::j2d_players[ply.entindex()].double_jumped = true;
-        DispatchParticleEffect(PLAYER_DOUBLE_JUMP_PARTICLE, ply.GetOrigin(), Vector(90, 0, 0));
-        ply.EmitSound(PLAYER_DOUBLE_JUMP_SOUND);
+        if (vel.z < PLAYER_DOUBLE_JUMP_VEL)
+        {
+            vel.z = PLAYER_DOUBLE_JUMP_VEL;
+            ply.SetAbsVelocity(vel);
+            ::j2d_players[ply.entindex()].double_jumped = true;
+            DispatchParticleEffect(PLAYER_DOUBLE_JUMP_PARTICLE, ply.GetOrigin(), Vector(90, 0, 0));
+            ply.EmitSound(PLAYER_DOUBLE_JUMP_SOUND);
+        }
     }
 
     ::j2d_players[ply.entindex()].prev_buttons = buttons;

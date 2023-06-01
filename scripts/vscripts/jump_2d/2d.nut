@@ -144,28 +144,26 @@ function Think()
 
 ::HandlePlayerCvars <- function(ply)
 {
-    local cvars = format(
-        "    cam_idealdist %d; cam_idealyaw %d; thirdperson; thirdperson_screenspace 1;",
-        CAM_DISTANCE
-        CAM_YAW
-    );
-
-    if (!::j2d_players[ply.entindex()].set_mayamode)
-    {
-        // This is a toggle instead of 0/1 :(
-        cvars += "; thirdperson_mayamode";
-        ::j2d_players[ply.entindex()].set_mayamode = true;
-    }
-
     if (ply == GetListenServerHost())
     {
+        local cvars = format(
+            "    cam_idealdist %d; cam_idealyaw %d; thirdperson; thirdperson_screenspace 1",
+            CAM_DISTANCE
+            CAM_YAW
+        );
+
+        if (!::j2d_players[ply.entindex()].set_mayamode)
+        {
+            // This is a toggle instead of 0/1 :(
+            cvars += "; thirdperson_mayamode";
+            ::j2d_players[ply.entindex()].set_mayamode = true;
+        }
         SendToConsole(cvars);
     }
     else
     {
         ClientPrint(ply, Constants.EHudNotify.HUD_PRINTCENTER, "This map is designed for singleplayer! Check console");
-        ClientPrint(ply, Constants.EHudNotify.HUD_PRINTCONSOLE, "This map is designed for singleplayer! Setting these cvars in MP may work:");
-        ClientPrint(ply, Constants.EHudNotify.HUD_PRINTCONSOLE, cvars);
+        ClientPrint(ply, Constants.EHudNotify.HUD_PRINTCONSOLE, "If you are playing locally, set \"tv_enable 0\" before loading map.");
     }
 }
 

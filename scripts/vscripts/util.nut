@@ -331,3 +331,11 @@ GetGroundEntity <- function(ent)
     return ground;
 }
 
+GetTFClass <- function(ply)
+{
+    if (!NetProps.HasProp(ply, "m_iClass"))
+    {
+        return Constants.ETFClass.TF_CLASS_UNDEFINED;
+    }
+    return NetProps.GetPropInt(ply, "m_iClass");
+}

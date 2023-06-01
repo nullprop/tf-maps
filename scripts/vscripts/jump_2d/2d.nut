@@ -1,7 +1,7 @@
 DoIncludeScript("util.nut", null);
 
 const CAM_DISTANCE = 350;
-const CAM_YAW = 0;
+const CAM_YAW = 90;
 
 const PLAYER_YAW = -90;
 const PLAYER_X = 0; // we only move on yz-plane
@@ -47,6 +47,7 @@ function Think()
 
             DrawAimIndicator(ply, eyeAngles);
             HandleDoubleJump(ply);
+            RefillPlayer(ply);
         }
     }
     // think every frame
@@ -60,6 +61,7 @@ function Think()
     {
         ::j2d_players[ply.entindex()].wish_yaw = -::j2d_players[ply.entindex()].wish_yaw;
         ::j2d_players[ply.entindex()].last_turn = Time();
+        SendToConsole(format("cam_idealyaw %f", -::j2d_players[ply.entindex()].wish_yaw));
     }
 }
 
@@ -107,32 +109,73 @@ function Think()
     ::j2d_players[ply.entindex()].prev_buttons = buttons;
 }
 
+::RefillPlayer <- function(ply)
+{
+    if (GetTFClass(ply) == Constants.ETFClass.TF_CLASS_DEMOMAN)
+    {
+        ply.SetHealth(175);
+    }
+    else
+    {
+        ply.SetHealth(300);
+    }
+
+    local weapon = ply.GetActiveWeapon();
+    if (weapon && !weapon.IsMeleeWeapon())
+    {
+        if (weapon.UsesPrimaryAmmo())
+        {
+            NetProps.SetPropIntArray(ply, "m_iAmmo", 99, weapon.GetPrimaryAmmoType());
+        }
+        if (weapon.UsesSecondaryAmmo())
+        {
+            NetProps.SetPropIntArray(ply, "m_iAmmo", 99, weapon.GetSecondaryAmmoType());
+        }
+        if (weapon.UsesClipsForAmmo1)
+        {
+            weapon.SetClip1(weapon.GetMaxClip1());
+        }
+        if (weapon.UsesClipsForAmmo2)
+        {
+            weapon.SetClip2(weapon.GetMaxClip2());
+        }
+    }
+}
+
+::HandlePlayerCvars <- function(ply)
+{
+    local cvars = format(
+        "    cam_idealdist %d; cam_idealyaw %d; thirdperson; thirdperson_screenspace 1;",
+        CAM_DISTANCE
+        CAM_YAW
+    );
+
+    if (!::j2d_players[ply.entindex()].set_mayamode)
+    {
+        // This is a toggle instead of 0/1 :(
+        cvars += "; thirdperson_mayamode";
+        ::j2d_players[ply.entindex()].set_mayamode = true;
+    }
+
+    if (ply == GetListenServerHost())
+    {
+        SendToConsole(cvars);
+    }
+    else
+    {
+        ClientPrint(ply, Constants.EHudNotify.HUD_PRINTCENTER, "This map is designed for singleplayer! Check console");
+        ClientPrint(ply, Constants.EHudNotify.HUD_PRINTCONSOLE, "This map is designed for singleplayer! Setting these cvars in MP may work:");
+        ClientPrint(ply, Constants.EHudNotify.HUD_PRINTCONSOLE, cvars);
+    }
+}
+
 function OnGameEvent_player_spawn(params)
 {
     local ply = GetPlayerFromUserID(params.userid);
     if (ply != null)
     {
         ::j2d_players[ply.entindex()].wish_yaw = PLAYER_YAW;
-        local cvars = format(
-            "    cam_idealdist %d; cam_idealyaw %d; thirdperson",
-            CAM_DISTANCE
-            CAM_YAW
-        );
-
-        if (ply == GetListenServerHost())
-        {
-            SendToConsole(cvars);
-        }
-        else
-        {
-            ClientPrint(ply, Constants.EHudNotify.HUD_PRINTCENTER, "Check console for cvars to change");
-            ClientPrint(ply, Constants.EHudNotify.HUD_PRINTCONSOLE, "You should set the following cvars for this map:");
-            ClientPrint(
-                ply,
-                Constants.EHudNotify.HUD_PRINTCONSOLE,
-                cvars
-            );
-        }
+        HandlePlayerCvars(ply);
     }
 }
 
@@ -143,7 +186,7 @@ if (!("j2d_loaded" in getroottable()))
     ::j2d_players <- {};
     for (local i = 0; i < Constants.Server.MAX_PLAYERS; i+=1)
     {
-        ::j2d_players[i] <- { double_jumped = false, prev_buttons = 0, ground_time = 0, wish_yaw = PLAYER_YAW, last_turn = 0 };
+        ::j2d_players[i] <- { double_jumped = false, prev_buttons = 0, ground_time = 0, wish_yaw = PLAYER_YAW, last_turn = 0, set_mayamode = false };
     }
 
     if (!("HOOKED_EVENTS" in getroottable()))

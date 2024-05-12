@@ -1,6 +1,7 @@
 *.vmf_autosave
 *.log
 *.bsp
+*.bsp.unpacked
 *.vmx
 *.prt
 *.backup

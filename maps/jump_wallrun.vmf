@@ -1,8 +1,8 @@
 versioninfo
 {
 	"editorversion" "400"
-	"editorbuild" "8864"
-	"mapversion" "499"
+	"editorbuild" "8865"
+	"mapversion" "500"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -72,7 +72,7 @@ bgimages_plus
 world
 {
 	"id" "1"
-	"mapversion" "499"
+	"mapversion" "500"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -46987,7 +46987,7 @@ entity
 {
 	"id" "123"
 	"classname" "logic_script"
-	"vscripts" "jump_wallrun/wallrun.nut"
+	"vscripts" "jump_wallrun.nut"
 	"origin" "-7360 0 9664"
 	editor
 	{
